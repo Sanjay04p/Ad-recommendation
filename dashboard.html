@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --color-primary: #2563eb;
+            --color-primary-hover: #1d4ed8;
+            --color-background: #ffffff;
+            --color-surface: #f9fafb;
+            --color-text: #111827;
+            --color-text-secondary: #6b7280;
+            --color-border: #e5e7eb;
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-purple: #8b5cf6;
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --radius-base: 8px;
+            --radius-lg: 12px;
+            --space-8: 8px;
+            --space-12: 12px;
+            --space-16: 16px;
+            --space-24: 24px;
+            --space-32: 32px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
+            background: var(--color-background);
+            color: var(--color-text);
+            line-height: 1.6;
+            padding: var(--space-24);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: var(--space-32);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--color-text);
+            margin-bottom: var(--space-8);
+        }
+
+        .subtitle {
+            color: var(--color-text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .input-section {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            box-shadow: var(--shadow-md);
+            margin-bottom: var(--space-32);
+        }
+
+        .form-group {
+            margin-bottom: var(--space-16);
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: var(--space-8);
+            color: var(--color-text);
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            width: 100%;
+            padding: var(--space-12);
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-base);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn {
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            padding: var(--space-12) var(--space-32);
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: var(--color-primary-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .dashboard {
+            display: none;
+        }
+
+        .dashboard.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-16);
+            margin-bottom: var(--space-32);
+        }
+
+        .card {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            box-shadow: var(--shadow-md);
+            border-left: 4px solid var(--color-primary);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0 25px rgba(37, 99, 235, 0.25), var(--shadow-lg);
+        }
+
+        .card.success {
+            border-left-color: var(--color-success);
+        }
+
+        .card.warning {
+            border-left-color: var(--color-warning);
+        }
+
+        .card.purple {
+            border-left-color: var(--color-purple);
+        }
+
+        .card-label {
+            font-size: 0.9rem;
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-8);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-text);
+        }
+
+        .card-subtitle {
+            font-size: 0.85rem;
+            color: var(--color-text-secondary);
+            margin-top: var(--space-8);
+        }
+
+        .channels-section {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            box-shadow: var(--shadow-md);
+            margin-bottom: var(--space-32);
+        }
+
+        .channels-section h2 {
+            margin-bottom: var(--space-24);
+            color: var(--color-text);
+        }
+
+        .channel-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-16);
+            background: var(--color-background);
+            border-radius: var(--radius-base);
+            margin-bottom: var(--space-12);
+            transition: transform 0.2s;
+        }
+
+        .channel-item:hover {
+            transform: translateX(4px);
+        }
+
+        .channel-info {
+            flex: 1;
+        }
+
+        .channel-name {
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: var(--space-8);
+        }
+
+        .channel-bar {
+            height: 8px;
+            background: var(--color-border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: var(--space-8);
+        }
+
+        .channel-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-purple));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .channel-amount {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-left: var(--space-16);
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-24);
+        }
+
+        .chart-container {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+        }
+
+        .chart-container:hover {
+            box-shadow: 0 0 30px rgba(37, 99, 235, 0.3), var(--shadow-lg);
+            transform: translateY(-4px);
+        }
+
+        .chart-container.full-width {
+            grid-column: span 2;
+        }
+
+        .chart-container h3 {
+            margin-bottom: var(--space-8);
+            color: var(--color-text);
+            font-size: 1.1rem;
+        }
+
+        .chart-description {
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: var(--space-16);
+            line-height: 1.5;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: var(--space-16);
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+
+
+
+
+
+
+        /* -----------------------------
+           LEFT NAV (new) - fixed column
+           ----------------------------- */
+        .left-nav {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--color-border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 8px;
+            gap: 12px;
+            z-index: 300;
+        }
+
+        
+        .left-nav .nav-logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .left-nav .nav-logo img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+            display: block;
+        }
+
+        /* stack of buttons */
+        .left-nav .nav-items { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+
+        .left-nav .nav-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            position: relative;
+            transition: background .18s ease, transform .12s ease;
+        }
+
+        .left-nav .nav-btn:hover { background: var(--sidebar-hover-bg); transform: translateY(-2px); }
+
+        .left-nav .nav-btn.active {
+            background: var(--sidebar-active-bg);
+            box-shadow: 0 6px 18px rgba(var(--color-teal-500-rgb),0.08);
+        }
+
+        /* icon visuals (using svg or emoji) */
+        .left-nav .nav-btn svg { width: 20px; height: 20px; display: block; fill: var(--color-slate-900); opacity: .9; }
+
+        /* spacer: pushes login to bottom */
+        .left-nav .nav-spacer { flex: 1; width: 100%; }
+
+        /* tooltip popup on hover */
+        .left-nav .tooltip {
+            position: absolute;
+            left: calc(var(--sidebar-width) + 12px);
+            top: 50%;
+            transform: translateY(-50%) translateX(6px);
+            white-space: nowrap;
+            background: var(--tooltip-bg);
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: var(--tooltip-shadow);
+            font-size: 13px;
+            color: var(--color-text);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .12s ease, transform .12s ease;
+            border: 1px solid rgba(0,0,0,0.04);
+            z-index: 350;
+        }
+
+        /* show tooltip on hover */
+        .left-nav .nav-btn:hover .tooltip,
+        .left-nav .nav-btn:focus .tooltip {
+            opacity: 1;
+            transform: translateY(-50%) translateX(0px);
+            pointer-events: auto;
+        }
+
+        /* small badge for login (optional) */
+        .left-nav .badge {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--color-primary);
+            position: absolute;
+            right: 6px;
+            top: 8px;
+            box-shadow: 0 2px 6px rgba(var(--color-teal-500-rgb),0.12);
+        }
+
+        /* adapt main container so it doesn't sit under sidebar on wider screens */
+        @media (min-width: 720px) {
+            main.container, .header, .footer {
+                margin-left: var(--sidebar-width);
+            }
+
+            /* header-content should still align, but we keep header sticky */
+            .header { position: sticky; top: 0; z-index: 200; }
+        }
+
+        /* mobile: collapse sidebar to top row small icons - keep it fixed */
+        @media (max-width: 719px) {
+            .left-nav { display: none; } /* hide on narrow screens to avoid crowding */
+            main.container, .header, .footer { margin-left: 0; }
+        }
+
+
+
+
+
+
+
+
+    </style>
+</head>
+<body>
+
+
+
+
+
+ <aside class="left-nav" aria-label="Primary Navigation">
+
+    <!-- Logo -->
+    <button class="nav-logo" title="AdGenius Home" onclick="window.location.href='home.html'">
+        <img src="https://agi-prod-file-upload-public-main-use1.s3.amazonaws.com/144af795-7d55-4040-8f77-662124fd7473" alt="logo">
+    </button>
+
+    <div class="nav-items" role="menu" aria-orientation="vertical">
+
+        <!-- Home -->
+        <button class="nav-btn" data-route="home.html" aria-label="Home" title="Home">
+            <svg viewBox="0 0 24 24"><path d="M12 3l9 8h-3v7h-4v-5H10v5H6v-7H3z"/></svg>
+            <div class="tooltip">Home</div>
+        </button>
+
+        <!-- Ad Recommender -->
+        <button class="nav-btn" data-route="adrecommender.html" aria-label="Ad Recommender" title="Ad Recommender">
+            <svg viewBox="0 0 24 24"><path d="M3 13h4v8H3zM10 3h4v18h-4zM17 8h4v13h-4z"/></svg>
+            <div class="tooltip">Ad Recommender</div>
+        </button>
+
+        <!-- Dashboard -->
+        <button class="nav-btn" data-route="dashboard.html" aria-label="Dashboard" title="Dashboard">
+            <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3zm0 8h8v-6H3zM13 21h8V11h-8zM13 3v6h8V3z"/></svg>
+            <div class="tooltip">Dashboard</div>
+        </button>
+
+        <!-- Ad Script Generator (new) -->
+        <button class="nav-btn" data-route="adscript.html" aria-label="Ad Script Generator" title="Ad Script Generator">
+            <svg viewBox="0 0 24 24">
+                <path d="M4 4h16v2H4zm0 4h10v2H4zm0 4h16v2H4zm0 4h10v2H4zm0 4h16v2H4z"/>
+            </svg>
+            <div class="tooltip">Ad Script Generator</div>
+        </button>
+
+    </div>
+
+    <!-- Push Login to Bottom -->
+    <div class="nav-spacer"></div>
+
+    <!-- Login -->
+    <button class="nav-btn" data-route="login.html" aria-label="Login" title="Login">
+        <svg viewBox="0 0 24 24">
+            <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.418 0-8 1.79-8 4v2h16v-2c0-2.21-3.582-4-8-4z"/>
+        </svg>
+        <div class="tooltip">Login</div>
+    </button>
+
+</aside>
+
+
+
+
+    <div class="container">
+        <header>
+            <h1>📊 Sales Dashboard</h1>
+            <p class="subtitle" id="headerSubtitle">Analyze your ad budget allocation and projected sales impact</p>
+        </header>
+
+        <div class="input-section">
+            <form id="budgetForm">
+                <div class="form-group">
+                    <label for="businessName">Business Name</label>
+                    <input 
+                        type="text" 
+                        id="businessName" 
+                        placeholder="e.g., Acme Corporation"
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="businessType">Business Type</label>
+                    <input 
+                        type="text" 
+                        id="businessType" 
+                        placeholder="e.g., E-commerce, SaaS, Retail"
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="budget">Enter Your Ad Budget (₹)</label>
+                    <input 
+                        type="number" 
+                        id="budget" 
+                        placeholder="e.g., 5000"
+                        min="1000"
+                        step="1000"
+                        required
+                    >
+                </div>
+                <button type="submit" class="btn">🚀 Generate Dashboard</button>
+            </form>
+        </div>
+
+        <div class="dashboard" id="dashboard">
+            <div class="summary-cards">
+                <div class="card success">
+                    <div class="card-label">Expected Sales Increase</div>
+                    <div class="card-value" id="salesIncrease">₹0</div>
+                    <div class="card-subtitle">Based on budget allocation</div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Total Ad Budget</div>
+                    <div class="card-value" id="totalBudget">₹0</div>
+                    <div class="card-subtitle">Split across 3 channels</div>
+                </div>
+                <div class="card warning">
+                    <div class="card-label">Projected ROI</div>
+                    <div class="card-value" id="roi">0%</div>
+                    <div class="card-subtitle">Return on investment</div>
+                </div>
+                <div class="card purple">
+                    <div class="card-label">Break-even Point</div>
+                    <div class="card-value" id="breakeven">0 days</div>
+                    <div class="card-subtitle">Time to recover budget</div>
+                </div>
+            </div>
+
+            <div class="channels-section">
+                <h2>💰 Budget Allocation by Channel</h2>
+                <div id="channelsList"></div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3>📈 Sales Growth Projection</h3>
+                    <p class="chart-description">Track your expected revenue growth over the next 6 months based on ad spend allocation</p>
+                    <div class="chart-wrapper">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>🎯 Channel Performance</h3>
+                    <p class="chart-description">Visual breakdown of your budget distribution across the three recommended advertising channels</p>
+                    <div class="chart-wrapper">
+                        <canvas id="channelChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>💵 Budget vs Revenue</h3>
+                    <p class="chart-description">Compare monthly ad expenditure against generated revenue to measure campaign effectiveness</p>
+                    <div class="chart-wrapper">
+                        <canvas id="budgetRevenueChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>📊 Weekly Conversion Trend</h3>
+                    <p class="chart-description">Monitor conversion rate performance for each channel across 6 weeks to identify trends</p>
+                    <div class="chart-wrapper">
+                        <canvas id="conversionChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container full-width">
+                    <h3>🔄 Customer Acquisition Cost</h3>
+                    <p class="chart-description">Analyze the average cost to acquire one customer and how it improves over time with optimization</p>
+                    <div class="chart-wrapper">
+                        <canvas id="cacChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+
+
+
+
+          (function () {
+            const nav = document.querySelector('.left-nav');
+            if (!nav) return;
+
+            const buttons = nav.querySelectorAll('.nav-btn[data-route]');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const route = btn.getAttribute('data-route');
+                    if (route) {
+                        // navigate
+                        window.location.href = route;
+                    }
+                });
+
+                // keyboard accessible
+                btn.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        btn.click();
+                    }
+                });
+            });
+
+            // login button opens the login popup we already added earlier (if exists)
+            const loginBtn = document.getElementById('nav-login');
+            if (loginBtn) {
+                loginBtn.addEventListener('click', () => {
+                    // toggle the header login popup if present
+                    const headerLogin = document.getElementById('loginPopup');
+                    if (headerLogin) {
+                        headerLogin.classList.toggle('show');
+                    } else {
+                        // fallback: navigate to /login or scroll to login section
+                        const loginSection = document.getElementById('login');
+                        if (loginSection) {
+                            loginSection.scrollIntoView({behavior:'smooth', block:'center'});
+                        } else {
+                            window.location.href = '/login';
+                        }
+                    }
+                });
+            }
+
+            // active state based on current location (simple)
+            const current = window.location.pathname.split('/').pop() || 'index.html';
+            buttons.forEach(b => {
+                const r = b.getAttribute('data-route');
+                if (r && r === current) {
+                    b.classList.add('active');
+                } else {
+                    b.classList.remove('active');
+                }
+            });
+        })();
+
+
+
+
+
+        const form = document.getElementById('budgetForm');
+        const dashboard = document.getElementById('dashboard');
+        let charts = {};
+
+        const allChannels = [
+            { name: 'Google Ads', color: '#3b82f6' },
+            { name: 'Youtube Ads', color: '#ff0000' },
+            { name: 'Meta Ads', color: '#0084ff' },
+            { name: 'Newspaper Ads', color: '#374151' },
+            { name: 'TV Ads', color: '#8b5cf6' },
+            { name: 'Billboard Ads', color: '#f59e0b' },
+            { name: 'Influencer Marketing', color: '#ec4899' }
+        ];
+
+        let channelData = [];
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const businessName = document.getElementById('businessName').value;
+            const businessType = document.getElementById('businessType').value;
+            const budget = parseFloat(document.getElementById('budget').value);
+            
+            // Disable button and show loading
+            const submitBtn = e.target.querySelector('.btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = '🔄 Analyzing best channels...';
+            submitBtn.disabled = true;
+            
+            try {
+                await selectTopChannels(businessName, businessType, budget);
+                generateDashboard(budget, businessName, businessType);
+            } catch (error) {
+                alert('Error selecting channels. Using default recommendations.');
+                // Fallback to default channels
+                channelData = [
+                    { name: 'Google Ads', percentage: 45, color: '#3b82f6', conversionRate: 4.5 },
+                    { name: 'Meta Ads', percentage: 35, color: '#0084ff', conversionRate: 3.8 },
+                    { name: 'Youtube Ads', percentage: 20, color: '#ff0000', conversionRate: 3.2 }
+                ];
+                generateDashboard(budget, businessName, businessType);
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        async function selectTopChannels(businessName, businessType, budget) {
+    // Point to your Flask backend endpoint
+    const BACKEND_URL = 'http://127.0.0.1:5000/api/dashboard-analyze';
+
+    try {
+        const response = await fetch(BACKEND_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                businessName: businessName,
+                businessType: businessType,
+                budget: budget
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Analysis request failed');
+        }
+
+        const data = await response.json();
+        
+        // Map recommendations to channelData with colors using the existing allChannels array
+        channelData = data.channels.map(channel => {
+            const colorMapping = allChannels.find(c => c.name === channel.name);
+            return {
+                name: channel.name,
+                percentage: channel.percentage,
+                conversionRate: channel.conversionRate,
+                color: colorMapping ? colorMapping.color : '#3b82f6',
+                reason: channel.reason
+            };
+        });
+    } catch (error) {
+        console.error("Dashboard Analysis Error:", error);
+        throw error;
+    }
+}
+
+        function generateDashboard(budget, businessName, businessType) {
+            // Update header with business info
+            document.getElementById('headerSubtitle').textContent = 
+                `${businessName} • ${businessType} • Ad Budget Analysis`;
+            // Calculate metrics
+            const roi = 2.8 + (Math.random() * 0.4); // 2.8x - 3.2x ROI
+            const salesIncrease = budget * roi;
+            const breakeven = Math.floor(45 + (Math.random() * 20)); // 45-65 days
+
+            // Update summary cards
+            document.getElementById('totalBudget').textContent = `₹${budget.toLocaleString('en-IN')}`;
+            document.getElementById('salesIncrease').textContent = `₹${Math.round(salesIncrease).toLocaleString('en-IN')}`;
+            document.getElementById('roi').textContent = `${Math.round(roi * 100)}%`;
+            document.getElementById('breakeven').textContent = `${breakeven} days`;
+
+            // Generate channels list
+            const channelsList = document.getElementById('channelsList');
+            channelsList.innerHTML = '';
+            
+            channelData.forEach(channel => {
+                const amount = budget * (channel.percentage / 100);
+                const div = document.createElement('div');
+                div.className = 'channel-item';
+                div.innerHTML = `
+                    <div class="channel-info">
+                        <div class="channel-name">${channel.name}</div>
+                        <div class="channel-bar">
+                            <div class="channel-fill" style="width: ${channel.percentage}%; background: ${channel.color};"></div>
+                        </div>
+                        <div class="card-subtitle">${channel.percentage}% of budget • ${channel.conversionRate}% conversion rate${channel.reason ? ' • ' + channel.reason : ''}</div>
+                    </div>
+                    <div class="channel-amount">₹${Math.round(amount).toLocaleString('en-IN')}</div>
+                `;
+                channelsList.appendChild(div);
+            });
+
+            // Create charts
+            createSalesChart(budget, salesIncrease);
+            createChannelChart();
+            createBudgetRevenueChart(budget, salesIncrease);
+            createConversionChart();
+            createCACChart(budget);
+
+            dashboard.classList.add('active');
+            dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function createSalesChart(budget, salesIncrease) {
+            if (charts.sales) charts.sales.destroy();
+
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            const baseline = 50000;
+            const data = months.map((_, i) => baseline + (salesIncrease / 6) * (i + 1) + (Math.random() * 5000));
+
+            charts.sales = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Projected Sales',
+                        data: data,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                callback: value => '₹' + (value / 1000).toFixed(0) + 'k'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createChannelChart() {
+            if (charts.channel) charts.channel.destroy();
+
+            const ctx = document.getElementById('channelChart').getContext('2d');
+            
+            charts.channel = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: channelData.map(c => c.name),
+                    datasets: [{
+                        data: channelData.map(c => c.percentage),
+                        backgroundColor: channelData.map(c => c.color),
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function createBudgetRevenueChart(budget, salesIncrease) {
+            if (charts.budgetRevenue) charts.budgetRevenue.destroy();
+
+            const ctx = document.getElementById('budgetRevenueChart').getContext('2d');
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            const budgetPerMonth = budget / 6;
+            const revenuePerMonth = salesIncrease / 6;
+
+            charts.budgetRevenue = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: 'Ad Spend',
+                            data: months.map(() => budgetPerMonth + (Math.random() * 1000)),
+                            backgroundColor: '#ef4444'
+                        },
+                        {
+                            label: 'Revenue',
+                            data: months.map((_, i) => revenuePerMonth * (i + 1) / 3 + (Math.random() * 2000)),
+                            backgroundColor: '#10b981'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: value => '₹' + (value / 1000).toFixed(0) + 'k'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createConversionChart() {
+            if (charts.conversion) charts.conversion.destroy();
+
+            const ctx = document.getElementById('conversionChart').getContext('2d');
+            const weeks = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'];
+            const baseRate = 2.5;
+
+            charts.conversion = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: weeks,
+                    datasets: channelData.map(channel => ({
+                        label: channel.name,
+                        data: weeks.map(() => channel.conversionRate + (Math.random() * 0.5 - 0.25)),
+                        borderColor: channel.color,
+                        backgroundColor: channel.color + '20',
+                        tension: 0.3
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                callback: value => value.toFixed(1) + '%'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createCACChart(budget) {
+            if (charts.cac) charts.cac.destroy();
+
+            const ctx = document.getElementById('cacChart').getContext('2d');
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            const baseCac = 45;
+
+            charts.cac = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Cost per Acquisition',
+                        data: months.map((_, i) => baseCac - (i * 2) + (Math.random() * 5)),
+                        backgroundColor: '#8b5cf6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                callback: value => '₹' + value.toFixed(0)
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

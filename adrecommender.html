@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Ad Recommendation System</title>
+    <style>
+        :root {
+            --color-white: rgba(255, 255, 255, 1);
+            --color-gray-50: rgba(249, 250, 251, 1);
+            --color-gray-100: rgba(243, 244, 246, 1);
+            --color-gray-200: rgba(229, 231, 235, 1);
+            --color-gray-300: rgba(209, 213, 219, 1);
+            --color-gray-400: rgba(156, 163, 175, 1);
+            --color-gray-500: rgba(107, 114, 128, 1);
+            --color-gray-600: rgba(75, 85, 99, 1);
+            --color-gray-700: rgba(55, 65, 81, 1);
+            --color-gray-800: rgba(31, 41, 55, 1);
+            --color-blue-500: rgba(59, 130, 246, 1);
+            --color-blue-600: rgba(37, 99, 235, 1);
+            --color-blue-700: rgba(29, 78, 216, 1);
+            --color-blue-50: rgba(239, 246, 255, 1);
+            --color-blue-500-rgb: 59, 130, 246;
+            --color-gray-800-rgb: 31, 41, 55;
+            --color-background: var(--color-white);
+            --color-surface: var(--color-white);
+            --color-text: var(--color-gray-800);
+            --color-text-secondary: var(--color-gray-600);
+            --color-primary: var(--color-blue-500);
+            --color-primary-hover: var(--color-blue-600);
+            --color-primary-active: var(--color-blue-700);
+            --color-secondary: var(--color-gray-100);
+            --color-secondary-hover: var(--color-gray-200);
+            --color-border: var(--color-gray-200);
+            --color-btn-primary-text: var(--color-white);
+            --color-card-border: var(--color-gray-200);
+            --color-focus-ring: rgba(var(--color-blue-500-rgb), 0.3);
+            --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-size-sm: 12px;
+            --font-size-base: 14px;
+            --font-size-lg: 16px;
+            --font-size-xl: 18px;
+            --font-size-2xl: 20px;
+            --font-size-3xl: 24px;
+            --space-8: 8px;
+            --space-12: 12px;
+            --space-16: 16px;
+            --space-20: 20px;
+            --space-24: 24px;
+            --space-32: 32px;
+            --radius-base: 8px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-background: var(--color-white);
+                --color-surface: var(--color-white);
+                --color-text: var(--color-gray-800);
+                --color-text-secondary: var(--color-gray-600);
+                --color-primary: var(--color-blue-500);
+                --color-primary-hover: var(--color-blue-600);
+                --color-secondary: var(--color-gray-100);
+                --color-secondary-hover: var(--color-gray-200);
+                --color-border: var(--color-gray-200);
+                --color-btn-primary-text: var(--color-white);
+                --color-card-border: var(--color-gray-200);
+                --color-focus-ring: rgba(var(--color-blue-500-rgb), 0.3);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family-base);
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            color: var(--color-text);
+            line-height: 1.6;
+            padding: var(--space-20);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: var(--font-size-3xl);
+            margin-bottom: var(--space-8);
+            color: var(--color-text);
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: var(--space-32);
+        }
+
+        .logo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: var(--space-16);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .subtitle {
+            font-size: var(--font-size-base);
+            color: var(--color-text-secondary);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .form-section {
+            background: var(--color-white);
+            border: 2px solid var(--color-gray-200);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            margin-bottom: var(--space-24);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            animation: fadeInUp 0.6s ease-out;
+            transition: all 0.3s ease;
+        }
+
+        .form-section:hover {
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
+            border-color: var(--color-primary);
+        }
+
+        .form-section h2 {
+            font-size: var(--font-size-xl);
+            margin-bottom: var(--space-16);
+            color: var(--color-text);
+        }
+
+        .form-group {
+            margin-bottom: var(--space-20);
+        }
+
+        label {
+            display: block;
+            margin-bottom: var(--space-8);
+            font-weight: 500;
+            font-size: var(--font-size-base);
+            color: var(--color-text);
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: var(--space-12);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            font-size: var(--font-size-base);
+            font-family: var(--font-family-base);
+            background-color: var(--color-surface);
+            color: var(--color-text);
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:hover,
+        input[type="number"]:hover,
+        textarea:hover,
+        select:hover {
+            border-color: var(--color-primary);
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px var(--color-focus-ring);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .location-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-16);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-12) var(--space-32);
+            border: none;
+            border-radius: var(--radius-base);
+            font-size: var(--font-size-base);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font-family-base);
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: var(--color-btn-primary-text);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-primary:hover:not(:disabled)::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--color-primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            background: var(--color-primary-active);
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: var(--space-24);
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid var(--color-secondary);
+            border-top: 3px solid var(--color-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto var(--space-16);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #results {
+            display: none;
+        }
+
+        #results.active {
+            display: block;
+        }
+
+        .recommendation-card {
+            background: var(--color-white);
+            border: 2px solid var(--color-gray-200);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            margin-bottom: var(--space-20);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
+            animation: slideIn 0.5s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .recommendation-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .recommendation-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .recommendation-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .recommendation-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1), 0 6px 12px rgba(0, 0, 0, 0.06);
+            border-color: var(--color-primary);
+            background: var(--color-blue-50);
+        }
+
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: var(--color-primary);
+            color: var(--color-btn-primary-text);
+            border-radius: 50%;
+            font-weight: 600;
+            font-size: var(--font-size-base);
+            margin-bottom: var(--space-12);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+            }
+        }
+
+        .recommendation-card h3 {
+            font-size: var(--font-size-xl);
+            margin-bottom: var(--space-12);
+            color: var(--color-text);
+        }
+
+        .recommendation-card h3 a {
+            color: var(--color-primary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .recommendation-card h3 a:hover {
+            color: var(--color-primary-hover);
+            text-decoration: underline;
+        }
+
+        .reason {
+            color: var(--color-text-secondary);
+            line-height: 1.8;
+            margin-top: var(--space-12);
+        }
+
+        .reason ul {
+            margin-left: var(--space-16);
+            padding-left: var(--space-16);
+        }
+
+        .reason li {
+            margin-bottom: var(--space-8);
+            list-style-type: disc;
+        }
+
+        .error {
+            background: rgba(192, 21, 47, 0.1);
+            border: 1px solid rgba(192, 21, 47, 0.25);
+            color: rgba(192, 21, 47, 1);
+            padding: var(--space-16);
+            border-radius: var(--radius-base);
+            margin-bottom: var(--space-20);
+        }
+
+        .info-text {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin-top: var(--space-8);
+        }
+
+        .api-key-section {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--color-primary);
+            border-radius: var(--radius-base);
+            padding: var(--space-16);
+            margin-bottom: var(--space-24);
+        }
+
+        .api-key-section h3 {
+            font-size: var(--font-size-base);
+            margin-bottom: var(--space-8);
+            color: var(--color-text);
+        }
+
+        .api-key-section p {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-12);
+        }
+
+        :root {
+            --sidebar-width: 72px;
+            --sidebar-bg: #f6f7f9;
+            --sidebar-active-bg: rgba(33,128,141,0.08);
+            --sidebar-hover-bg: rgba(0,0,0,0.03);
+            --tooltip-bg: #ffffff;
+        }
+
+        .left-nav {
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            border-right: 1px solid rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 8px;
+            z-index: 300;
+        }
+
+        .nav-logo img {
+            width: 28px; height: 28px;
+        }
+
+        .nav-items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .nav-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            position: relative;
+            transition: background .15s ease;
+        }
+
+        .nav-btn:hover {
+            background: var(--sidebar-hover-bg);
+        }
+
+        .nav-btn.active {
+            background: var(--sidebar-active-bg);
+        }
+
+        .nav-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: #13343b;
+        }
+
+        .nav-spacer { flex: 1; }
+
+        .tooltip {
+            position: absolute;
+            left: calc(var(--sidebar-width) + 10px);
+            top: 50%;
+            transform: translateY(-50%) translateX(5px);
+            background: var(--tooltip-bg);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #141c21;
+            white-space: nowrap;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .12s ease, transform .12s ease;
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .nav-btn:hover .tooltip {
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        @media (min-width: 720px) {
+            main, .header, .footer {
+                margin-left: var(--sidebar-width);
+            }
+        }
+
+        @media (max-width: 719px) {
+            .left-nav { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LEFT SIDEBAR MENU -->
+    <aside class="left-nav" aria-label="Primary Navigation">
+        <!-- Logo -->
+        <button class="nav-logo" title="AdGenius Home" onclick="window.location.href='home.html'">
+            <img src="https://agi-prod-file-upload-public-main-use1.s3.amazonaws.com/144af795-7d55-4040-8f77-662124fd7473" alt="logo">
+        </button>
+
+        <div class="nav-items" role="menu" aria-orientation="vertical">
+            <!-- Home -->
+            <button class="nav-btn" data-route="home.html" aria-label="Home" title="Home">
+                <svg viewBox="0 0 24 24"><path d="M12 3l9 8h-3v7h-4v-5H10v5H6v-7H3z"/></svg>
+                <div class="tooltip">Home</div>
+            </button>
+
+            <!-- Ad Recommender -->
+            <button class="nav-btn" data-route="adrecommender.html" aria-label="Ad Recommender" title="Ad Recommender">
+                <svg viewBox="0 0 24 24"><path d="M3 13h4v8H3zM10 3h4v18h-4zM17 8h4v13h-4z"/></svg>
+                <div class="tooltip">Ad Recommender</div>
+            </button>
+
+            <!-- Dashboard -->
+            <button class="nav-btn" data-route="dashboard.html" aria-label="Dashboard" title="Dashboard">
+                <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3zm0 8h8v-6H3zM13 21h8V11h-8zM13 3v6h8V3z"/></svg>
+                <div class="tooltip">Dashboard</div>
+            </button>
+
+            <!-- Ad Script Generator (new) -->
+            <button class="nav-btn" data-route="adscript.html" aria-label="Ad Script Generator" title="Ad Script Generator">
+                <svg viewBox="0 0 24 24">
+                    <path d="M4 4h16v2H4zm0 4h10v2H4zm0 4h16v2H4zm0 4h10v2H4zm0 4h16v2H4z"/>
+                </svg>
+                <div class="tooltip">Ad Script Generator</div>
+            </button>
+        </div>
+
+        <!-- Push Login to Bottom -->
+        <div class="nav-spacer"></div>
+
+        
+
+    <div class="container">
+        <div class="header-section">
+            <img src="https://agi-prod-file-upload-public-main-use1.s3.amazonaws.com/144af795-7d55-4040-8f77-662124fd7473" alt="Ad Genius Logo" class="logo">
+            <h1>Ad Genius</h1>
+            <p class="subtitle">Get intelligent advertising channel recommendations powered by AI</p>
+        </div>
+
+
+        <form id="adForm">
+            <div class="form-section">
+                <h2>Business Information</h2>
+                <div class="form-group">
+                    <label for="businessName">Business Name *</label>
+                    <input type="text" id="businessName" required placeholder="e.g., TechGadgets India">
+                </div>
+                <div class="form-group">
+                    <label for="whatTheySell">What do you sell? *</label>
+                    <textarea id="whatTheySell" required placeholder="Describe your products or services"></textarea>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Target Audience &amp; Goals</h2>
+                <div class="form-group">
+                    <label for="targetCustomer">Target Customer *</label>
+                    <input type="text" id="targetCustomer" required placeholder="e.g., Tech-savvy millennials, Small business owners">
+                </div>
+                <div class="form-group">
+                    <label for="businessGoals">Business Goals *</label>
+                    <select id="businessGoals" required>
+                        <option value="">Select primary goal</option>
+                        <option value="brand_awareness">Brand Awareness</option>
+                        <option value="lead_generation">Lead Generation</option>
+                        <option value="sales_conversion">Sales &amp; Conversion</option>
+                        <option value="customer_engagement">Customer Engagement</option>
+                        <option value="product_launch">Product Launch</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Location &amp; Budget</h2>
+                <div class="location-inputs">
+                    <div class="form-group">
+                        <label for="state">State *</label>
+                        <input type="text" id="state" required placeholder="e.g., Karnataka">
+                    </div>
+                    <div class="form-group">
+                        <label for="city">City *</label>
+                        <input type="text" id="city" required placeholder="e.g., Bangalore">
+                    </div>
+                    <div class="form-group">
+                        <label for="area">Area (Optional)</label>
+                        <input type="text" id="area" placeholder="e.g., Koramangala">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="budget">Monthly Budget (₹) *</label>
+                    <input type="number" id="budget" required placeholder="50000" min="1000">
+                    <p class="info-text">Enter your monthly advertising budget in Indian Rupees</p>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Additional Information</h2>
+                <div class="form-group">
+                    <label for="otherInfo">Special Requests or Requirements (Optional)</label>
+                    <textarea id="otherInfo" placeholder="Any specific preferences, previous campaign experience, or special considerations"></textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full">Get AI Recommendations</button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing your requirements with AI...</p>
+        </div>
+
+        <div id="results">
+            <div class="form-section">
+                <h2>📊 Top 3 Recommended Advertising Channels</h2>
+                <div id="recommendationsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const nav = document.querySelector('.left-nav');
+            if (!nav) return;
+
+            const buttons = nav.querySelectorAll('.nav-btn[data-route]');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const route = btn.getAttribute('data-route');
+                    if (route) {
+                        window.location.href = route;
+                    }
+                });
+
+                btn.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        btn.click();
+                    }
+                });
+            });
+
+            const loginBtn = document.getElementById('nav-login');
+            if (loginBtn) {
+                loginBtn.addEventListener('click', () => {
+                    const headerLogin = document.getElementById('loginPopup');
+                    if (headerLogin) {
+                        headerLogin.classList.toggle('show');
+                    } else {
+                        const loginSection = document.getElementById('login');
+                        if (loginSection) {
+                            loginSection.scrollIntoView({behavior:'smooth', block:'center'});
+                        } else {
+                            window.location.href = '/login';
+                        }
+                    }
+                });
+            }
+
+            const current = window.location.pathname.split('/').pop() || 'index.html';
+            buttons.forEach(b => {
+                const r = b.getAttribute('data-route');
+                if (r && r === current) {
+                    b.classList.add('active');
+                } else {
+                    b.classList.remove('active');
+                }
+            });
+        })();
+
+        const form = document.getElementById('adForm');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const recommendationsList = document.getElementById('recommendationsList');
+        const apiKeyInput = document.getElementById('apiKey');
+
+        const channelEmojis = {
+            'Google Ads': '🔍',
+            'YouTube Ads': '📺',
+            'Meta Ads': '👥',
+            'Newspaper Ads': '📰',
+            'TV': '📺',
+            'Billboard Ads': '🪧',
+            'Influencer Marketing': '⭐'
+        };
+
+        const channelURLs = {
+            'Google Ads': 'https://ads.google.com',
+            'YouTube Ads': 'https://ads.youtube.com',
+            'Meta Ads': 'https://www.facebook.com/business/tools/ads-manager',
+            'Newspaper Ads': 'https://www.timesofindia.com/advertise',
+            'TV Ads': 'https://www.aapkathankyou.com/corporate',
+            'Billboard Ads': 'https://www.oohcircle.com',
+            'Influencer Marketing': 'https://www.barter.tv'
+        };
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const apiKey = apiKeyInput.value.trim();
+            if (!apiKey) {
+                alert('Please enter your Gemini API key');
+                apiKeyInput.focus();
+                return;
+            }
+
+            const formData = {
+                businessName: document.getElementById('businessName').value,
+                whatTheySell: document.getElementById('whatTheySell').value,
+                targetCustomer: document.getElementById('targetCustomer').value,
+                businessGoals: document.getElementById('businessGoals').value,
+                location: {
+                    state: document.getElementById('state').value,
+                    city: document.getElementById('city').value,
+                    area: document.getElementById('area').value
+                },
+                budgetINR: parseInt(document.getElementById('budget').value),
+                otherInfo: document.getElementById('otherInfo').value
+            };
+
+            loading.classList.add('active');
+            results.classList.remove('active');
+
+            try {
+                const recommendations = await getRecommendations(formData, apiKey);
+                displayRecommendations(recommendations);
+            } catch (error) {
+                displayError(error.message);
+            } finally {
+                loading.classList.remove('active');
+            }
+        });
+
+        async function getRecommendations(data) {
+    
+    const BACKEND_URL = 'http://127.0.0.1:5000/api/recommend';
+
+    try {
+        const response = await fetch(BACKEND_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data) // Sending only business data
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Server error occurred');
+        }
+
+        // The server returns the final JSON array of recommendations
+        return await response.json();
+        
+    } catch (error) {
+        throw new Error('Failed to connect to backend: ' + error.message);
+    }
+}
+
+        function displayRecommendations(recommendations) {
+            recommendationsList.innerHTML = '';
+            
+            recommendations.forEach((rec, index) => {
+                const emoji = channelEmojis[rec.channel] || '📢';
+                const url = channelURLs[rec.channel] || '#';
+                
+                const reasonsHTML = rec.reasons && Array.isArray(rec.reasons) 
+                    ? `<ul>${rec.reasons.map(reason => `<li>${reason}</li>`).join('')}</ul>`
+                    : `<p>${rec.reason}</p>`;
+                
+                const card = document.createElement('div');
+                card.className = 'recommendation-card';
+                card.innerHTML = `
+                    <div class="rank-badge">${index + 1}</div>
+                    <h3><a href="${url}" target="_blank" rel="noopener noreferrer">${emoji} ${rec.channel}</a></h3>
+                    <div class="reason">${reasonsHTML}</div>
+                `;
+                recommendationsList.appendChild(card);
+            });
+
+            results.classList.add('active');
+            results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function displayError(message) {
+            recommendationsList.innerHTML = `
+                <div class="error">
+                    <strong>Error:</strong> ${message}
+                </div>
+            `;
+            results.classList.add('active');
+        }
+    </script>
+</body>
+</html>

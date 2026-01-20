@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Ad Generator</title>
+    <style>
+        :root {
+            --color-primary: #2563eb;
+            --color-primary-hover: #1d4ed8;
+            --color-primary-active: #1e40af;
+            --color-background: #ffffff;
+            --color-surface: #f9fafb;
+            --color-text: #111827;
+            --color-text-secondary: #6b7280;
+            --color-border: #e5e7eb;
+            --color-success: #10b981;
+            --color-error: #ef4444;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --radius-base: 8px;
+            --radius-lg: 12px;
+            --space-8: 8px;
+            --space-12: 12px;
+            --space-16: 16px;
+            --space-24: 24px;
+            --space-32: 32px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
+            background: var(--color-background);
+            color: var(--color-text);
+            line-height: 1.6;
+            padding: var(--space-24);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: var(--space-32);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--color-text);
+            margin-bottom: var(--space-8);
+        }
+
+        .subtitle {
+            color: var(--color-text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .input-section {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            box-shadow: var(--shadow-md);
+            margin-bottom: var(--space-32);
+        }
+
+        .form-group {
+            margin-bottom: var(--space-24);
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: var(--space-8);
+            color: var(--color-text);
+        }
+
+        select, textarea {
+            width: 100%;
+            padding: var(--space-12);
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-base);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: var(--color-background);
+        }
+
+        select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .btn {
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            padding: var(--space-12) var(--space-32);
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-8);
+        }
+
+        .btn:hover {
+            background: var(--color-primary-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn:active {
+            background: var(--color-primary-active);
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: var(--color-text-secondary);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-8);
+            color: var(--color-text-secondary);
+            margin-top: var(--space-16);
+        }
+
+        .loading.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--color-border);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .tabs {
+            display: flex;
+            gap: var(--space-8);
+            margin-bottom: var(--space-24);
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        .tab {
+            padding: var(--space-12) var(--space-24);
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: var(--color-text);
+            background: var(--color-surface);
+        }
+
+        .tab.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .content-card {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            box-shadow: var(--shadow-md);
+            margin-bottom: var(--space-16);
+        }
+
+        .content-card h3 {
+            color: var(--color-text);
+            margin-bottom: var(--space-16);
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+        }
+
+        .content-card .content-text {
+            color: var(--color-text);
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+
+        .icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: var(--space-16);
+            border-radius: var(--radius-base);
+            border-left: 4px solid var(--color-error);
+            margin-top: var(--space-16);
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .copy-btn {
+            background: var(--color-surface);
+            color: var(--color-text);
+            border: 2px solid var(--color-border);
+            padding: var(--space-8) var(--space-16);
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: var(--space-16);
+        }
+
+        .copy-btn:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: var(--space-16);
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                border-bottom: none;
+                border-left: 3px solid transparent;
+            }
+
+            .tab.active {
+                border-left-color: var(--color-primary);
+                border-bottom-color: transparent;
+            }
+        }
+
+
+
+
+        .left-nav {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  border-right: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 8px;
+  z-index: 300;
+}
+
+.nav-logo img {
+  width: 28px; height: 28px;
+}
+
+.nav-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.nav-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  position: relative;
+  transition: background .15s ease;
+}
+
+.nav-btn:hover {
+  background: var(--sidebar-hover-bg);
+}
+
+.nav-btn.active {
+  background: var(--sidebar-active-bg);
+}
+
+.nav-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: #13343b;
+}
+
+.nav-spacer { flex: 1; }
+
+.tooltip {
+  position: absolute;
+  left: calc(var(--sidebar-width) + 10px);
+  top: 50%;
+  transform: translateY(-50%) translateX(5px);
+  background: var(--tooltip-bg);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #141c21;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s ease, transform .12s ease;
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
+.nav-btn:hover .tooltip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* shift main content */
+@media (min-width: 720px) {
+  main, .header, .footer {
+    margin-left: var(--sidebar-width);
+  }
+}
+
+@media (max-width: 719px) {
+  .left-nav { display: none; }
+}
+
+
+
+
+    </style>
+</head>
+<body>
+
+
+
+    <aside class="left-nav" aria-label="Primary Navigation">
+
+    <!-- Logo -->
+    <button class="nav-logo" title="AdGenius Home" onclick="window.location.href='home.html'">
+        <img src="https://agi-prod-file-upload-public-main-use1.s3.amazonaws.com/144af795-7d55-4040-8f77-662124fd7473" alt="logo">
+    </button>
+
+    <div class="nav-items" role="menu" aria-orientation="vertical">
+
+        <!-- Home -->
+        <button class="nav-btn" data-route="home.html" aria-label="Home" title="Home">
+            <svg viewBox="0 0 24 24"><path d="M12 3l9 8h-3v7h-4v-5H10v5H6v-7H3z"/></svg>
+            <div class="tooltip">Home</div>
+        </button>
+
+        <!-- Ad Recommender -->
+        <button class="nav-btn" data-route="adrecommender.html" aria-label="Ad Recommender" title="Ad Recommender">
+            <svg viewBox="0 0 24 24"><path d="M3 13h4v8H3zM10 3h4v18h-4zM17 8h4v13h-4z"/></svg>
+            <div class="tooltip">Ad Recommender</div>
+        </button>
+
+        <!-- Dashboard -->
+        <button class="nav-btn" data-route="dashboard.html" aria-label="Dashboard" title="Dashboard">
+            <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3zm0 8h8v-6H3zM13 21h8V11h-8zM13 3v6h8V3z"/></svg>
+            <div class="tooltip">Dashboard</div>
+        </button>
+
+        <!-- Ad Script Generator (new) -->
+        <button class="nav-btn" data-route="adscript.html" aria-label="Ad Script Generator" title="Ad Script Generator">
+            <svg viewBox="0 0 24 24">
+                <path d="M4 4h16v2H4zm0 4h10v2H4zm0 4h16v2H4zm0 4h10v2H4zm0 4h16v2H4z"/>
+            </svg>
+            <div class="tooltip">Ad Script Generator</div>
+        </button>
+
+    </div>
+
+    <!-- Push Login to Bottom -->
+    <div class="nav-spacer"></div>
+
+    <!-- Login -->
+    <button class="nav-btn" data-route="login.html" aria-label="Login" title="Login">
+        <svg viewBox="0 0 24 24">
+            <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.418 0-8 1.79-8 4v2h16v-2c0-2.21-3.582-4-8-4z"/>
+        </svg>
+        <div class="tooltip">Login</div>
+    </button>
+
+</aside>
+
+
+
+
+
+    <div class="container">
+        <header>
+            <h1>🎨 AI Ad Generator</h1>
+            <p class="subtitle">Generate creative ideas for ad reels, TV commercials, and poster designs</p>
+        </header>
+
+        <div class="input-section">
+            <form id="adForm">
+                <div class="form-group">
+                    <label for="adType">Ad Type</label>
+                    <select id="adType" required>
+                        <option value="">Select ad type...</option>
+                        <option value="reel">Social Media Reel (15-30 sec)</option>
+                        <option value="tv">TV Commercial (30-60 sec)</option>
+                        <option value="poster">Poster Design</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="prompt">Describe Your Product/Service</label>
+                    <textarea 
+                        id="prompt" 
+                        placeholder="E.g., A sustainable fashion brand targeting young professionals, emphasizing eco-friendly materials and modern designs..."
+                        required
+                    ></textarea>
+                </div>
+
+                <button type="submit" class="btn" id="generateBtn">
+                    <span>✨ Generate Ideas</span>
+                </button>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <span>Generating creative ideas...</span>
+                </div>
+
+                <div class="error-message" id="errorMessage"></div>
+            </form>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <div class="tabs">
+                <button class="tab active" data-tab="concept">💡 Concept</button>
+                <button class="tab" data-tab="script">📝 Script/Copy</button>
+                <button class="tab" data-tab="visuals">🎬 Visual Elements</button>
+                <button class="tab" data-tab="technical">⚙️ Technical Details</button>
+            </div>
+
+            <div class="tab-content active" id="concept"></div>
+            <div class="tab-content" id="script"></div>
+            <div class="tab-content" id="visuals"></div>
+            <div class="tab-content" id="technical"></div>
+        </div>
+    </div>
+
+    <script>
+
+
+
+
+         (function () {
+            const nav = document.querySelector('.left-nav');
+            if (!nav) return;
+
+            const buttons = nav.querySelectorAll('.nav-btn[data-route]');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const route = btn.getAttribute('data-route');
+                    if (route) {
+                        // navigate
+                        window.location.href = route;
+                    }
+                });
+
+                // keyboard accessible
+                btn.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        btn.click();
+                    }
+                });
+            });
+
+            // login button opens the login popup we already added earlier (if exists)
+            const loginBtn = document.getElementById('nav-login');
+            if (loginBtn) {
+                loginBtn.addEventListener('click', () => {
+                    // toggle the header login popup if present
+                    const headerLogin = document.getElementById('loginPopup');
+                    if (headerLogin) {
+                        headerLogin.classList.toggle('show');
+                    } else {
+                        // fallback: navigate to /login or scroll to login section
+                        const loginSection = document.getElementById('login');
+                        if (loginSection) {
+                            loginSection.scrollIntoView({behavior:'smooth', block:'center'});
+                        } else {
+                            window.location.href = '/login';
+                        }
+                    }
+                });
+            }
+
+            // active state based on current location (simple)
+            const current = window.location.pathname.split('/').pop() || 'index.html';
+            buttons.forEach(b => {
+                const r = b.getAttribute('data-route');
+                if (r && r === current) {
+                    b.classList.add('active');
+                } else {
+                    b.classList.remove('active');
+                }
+            });
+        })();
+
+
+
+
+
+
+        const form = document.getElementById('adForm');
+        const generateBtn = document.getElementById('generateBtn');
+        const loading = document.getElementById('loading');
+        const errorMessage = document.getElementById('errorMessage');
+        const resultsSection = document.getElementById('resultsSection');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        // Tab switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === targetTab) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const adType = document.getElementById('adType').value;
+            const prompt = document.getElementById('prompt').value;
+            
+            if (!adType || !prompt) {
+                showError('Please fill in all fields');
+                return;
+            }
+
+            await generateAdContent(adType, prompt);
+        });
+
+        
+    const API_URL = 'http://127.0.0.1:5000/api/generate';
+
+    async function generateAdContent(adType, userPrompt) {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: systemPrompt }) // Key is hidden in backend
+        });
+        const data = await response.json();
+        displayResults(data.text);
+    }
+
+            const systemPrompt = `You are a creative advertising expert. Generate a comprehensive ad campaign idea for a ${adTypeNames[adType]}.
+
+Structure your response in exactly 4 sections with these headings:
+
+## CONCEPT
+Provide the core creative concept and big idea behind the ad.
+
+## SCRIPT/COPY
+${adType === 'poster' ? 'Provide the headline, tagline, and body copy for the poster.' : 'Provide a detailed scene-by-scene script with timestamps, dialogue, and actions.'}
+
+## VISUAL ELEMENTS
+Describe the visual style, color palette, imagery, composition, and design elements.
+
+## TECHNICAL DETAILS
+${adType === 'poster' ? 'Include dimensions, format specifications, typography choices, and printing considerations.' : 'Include camera angles, music/sound effects, editing style, and production requirements.'}
+
+User's brief: ${userPrompt}`;
+
+            try {
+                const response = await fetch(`${API_URL}?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: systemPrompt
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.9,
+                            topK: 40,
+                            topP: 0.95,
+                            maxOutputTokens: 2048,
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const generatedText = data.candidates[0].content.parts[0].text;
+                
+                displayResults(generatedText);
+                
+            } catch (error) {
+                showError(`Failed to generate content: ${error.message}`);
+            } finally {
+                generateBtn.disabled = false;
+                loading.classList.remove('active');
+            }
+        
+
+        function displayResults(text) {
+            const sections = parseResponse(text);
+            
+            document.getElementById('concept').innerHTML = createContentCard('💡 Creative Concept', sections.concept);
+            document.getElementById('script').innerHTML = createContentCard('📝 Script/Copy', sections.script);
+            document.getElementById('visuals').innerHTML = createContentCard('🎬 Visual Elements', sections.visuals);
+            document.getElementById('technical').innerHTML = createContentCard('⚙️ Technical Details', sections.technical);
+            
+            resultsSection.classList.add('active');
+            
+            // Reset to first tab
+            tabs.forEach(t => t.classList.remove('active'));
+            tabs[0].classList.add('active');
+            tabContents.forEach(c => c.classList.remove('active'));
+            tabContents[0].classList.add('active');
+            
+            // Scroll to results
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function parseResponse(text) {
+            const sections = {
+                concept: '',
+                script: '',
+                visuals: '',
+                technical: ''
+            };
+
+            const conceptMatch = text.match(/##\s*CONCEPT\s*\n([\s\S]*?)(?=##|$)/i);
+            const scriptMatch = text.match(/##\s*SCRIPT\/COPY\s*\n([\s\S]*?)(?=##|$)/i);
+            const visualsMatch = text.match(/##\s*VISUAL ELEMENTS\s*\n([\s\S]*?)(?=##|$)/i);
+            const technicalMatch = text.match(/##\s*TECHNICAL DETAILS\s*\n([\s\S]*?)(?=##|$)/i);
+
+            sections.concept = conceptMatch ? conceptMatch[1].trim() : 'No concept section found';
+            sections.script = scriptMatch ? scriptMatch[1].trim() : 'No script section found';
+            sections.visuals = visualsMatch ? visualsMatch[1].trim() : 'No visuals section found';
+            sections.technical = technicalMatch ? technicalMatch[1].trim() : 'No technical section found';
+
+            return sections;
+        }
+
+        function createContentCard(title, content) {
+            return `
+                <div class="content-card">
+                    <h3>${title}</h3>
+                    <div class="content-text">${escapeHtml(content)}</div>
+                    <button class="copy-btn" onclick="copyToClipboard(this, '${escapeHtml(content).replace(/'/g, "\\'")}')">
+                        📋 Copy to Clipboard
+                    </button>
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function copyToClipboard(button, text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            const originalText = button.textContent;
+            button.textContent = '✅ Copied!';
+            button.style.borderColor = 'var(--color-success)';
+            button.style.color = 'var(--color-success)';
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.borderColor = '';
+                button.style.color = '';
+            }, 2000);
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('active');
+        }
+    </script>
+</body>
+</html>
+
