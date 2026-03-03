@@ -1,2 +1,4 @@
 .env
 .conda/
+LOGO.png
+__pycache__/
